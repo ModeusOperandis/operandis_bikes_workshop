@@ -15,9 +15,9 @@ class Ville(models.Model):
 
 class Lieu(models.Model):
     nom = models.CharField()
-    ville = models.ManyToManyField(Ville, on_delete=models.PROTECT)
+    ville = models.ManyToManyField("Ville")
     superficie = models.FloatField()
-    quantite_machines = models.ForeignKey("Quantite_machine", on_delete=models.PROTECT)
+    quantite_machines = models.ForeignKey("QuantiteProduit", on_delete=models.PROTECT)
     consomation_electrique = models.FloatField()
 
 class Quantite_machine(models.Model):
@@ -35,7 +35,7 @@ class Transport(models.Model):
     nombre_palettes = models.IntegerField()
     cout = models.FloatField()
     delai = models.FloatField()
-    depart = models.ForeignKey(Lieu, on_delete=models.PROTECT)
+    depart = models.ForeignKey(Lieu, on_delete=models.PROTECT, related_name="depart+")
     arrive = models.ForeignKey(Lieu, on_delete=models.PROTECT)
 
 class Operation(models.Model):
@@ -43,7 +43,7 @@ class Operation(models.Model):
     operation_suivante = models.ForeignKey("self", on_delete=models.PROTECT) #liste chaînée
     cout = models.FloatField()
     machine = models.ForeignKey(Machine, on_delete=models.PROTECT)
-    quantite_produit = models.ManyToManyField(Quantite_produit, on_delete=models.PROTECT)
+    quantite_produit = models.ManyToManyField("QuantiteProduit")
     heure_de_travail = models.FloatField()
     consomation_electrique = models.FloatField()
 
@@ -59,7 +59,7 @@ class Prix_Produit(models.Model):
     prix_achat = models.FloatField()
 
 class Fournisseur(models.Model):
-    produit = models.ManyToManyField(Produit, on_delete=models.PROTECT)
+    produit = models.ManyToManyField(Produit)
     prix_achat = models.FloatField()
 
 class QuantiteProduit(models.Model):
@@ -67,7 +67,7 @@ class QuantiteProduit(models.Model):
     nombre = models.IntegerField()
 
 class Stock(models.Model):
-    quantite_produit = models.ManyToManyField("Quantite_Produit", on_delete=models.PROTECT)
+    quantite_produit = models.ManyToManyField("QuantiteProduit")
     palettes_max = models.IntegerField()
 
 class Point_de_vente(models.Model):
@@ -77,7 +77,7 @@ class Point_de_vente(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.PROTECT)
 
 class Facture(models.Model):
-    quantite_produit = models.ManyToManyField("QuantiteProduit", on_delete=models.PROTECT)
+    quantite_produit = models.ManyToManyField("QuantiteProduit")
     reduction = models.FloatField()
     Point_de_vente = models.ForeignKey(Point_de_vente, on_delete=models.PROTECT)
     client = models.CharField()
