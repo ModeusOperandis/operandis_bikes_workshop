@@ -27,7 +27,17 @@ class Produit(models.Model):
     operation = models.ForeignKey("Operation", blank=True, null=True, on_delete=models.PROTECT) #c'est une liste chaînée
     def __str__(self):
             return self.nom
+
+    def costs(self):
+          somme = self.prix_de_vente
+          op = self.operation
+          while op.operation_suivante:
+                somme = somme + self.operation.costs()
+                op = op.operation_suivante
+            
+          return somme
     
+               
 class QuantiteProduit(models.Model):
     produit = models.ForeignKey(Produit,  on_delete=models.PROTECT)
     nombre = models.IntegerField()
@@ -41,6 +51,10 @@ class Lieu(models.Model):
     def __str__(self):
             return self.nom
 
+    def costs(self):
+          return ((self.superficie * self.ville.prix_metre_carre) + (self.consomation_electrique * self.ville.pays.tarif_electrique) + (self.quantite_machines * self.quantite_machines.type_machine.costs()))
+    
+
 class Machine(models.Model):
     nom = models.CharField()
     prix = models.FloatField()
@@ -49,6 +63,9 @@ class Machine(models.Model):
     superficie = models.FloatField()
     def __str__(self):
             return self.nom
+
+    def costs(self):
+          return (self.prix + (self.cout_de_maintenance * self.duree_de_vie))
     
 class Quantite_machine(models.Model):
     type_machine = models.ForeignKey(Machine, blank=True, null=True, on_delete=models.PROTECT)
@@ -71,8 +88,12 @@ class Operation(models.Model):
     quantite_produit = models.ManyToManyField("QuantiteProduit", blank=True, null=True)
     heure_de_travail = models.FloatField()
     consomation_electrique = models.FloatField()
+
     def __str__(self):
             return self.nom
+
+    def costs(self):
+          return (self.cout + self.heure_de_travail * (self.machine.quantite_machine_set.first().lieu_set.first().ville.pays.salaire_minimum) + self.consomation_electrique * (self.machine.quantite_machine_set.first().lieu_set.first().ville.pays.tarif_electrique))
 
 
 
@@ -90,7 +111,9 @@ class Fournisseur(models.Model):
 class Stock(models.Model):
     quantite_produit = models.ManyToManyField("QuantiteProduit")
     palettes_max = models.IntegerField()
-
+    def costs(self):
+          return self.quantite_produit.nombre * self.quantite_produit.produit.costs()
+      
 class Point_de_vente(models.Model):
     nom = models.CharField()
     lieu = models.ForeignKey(Lieu, on_delete=models.PROTECT)
@@ -98,6 +121,8 @@ class Point_de_vente(models.Model):
     stock = models.ForeignKey(Stock, on_delete=models.PROTECT)
     def __str__(self):
                 return self.nom
+    def costs(self):
+          return self.stock.costs + self.lieu.costs()
 
 class Facture(models.Model):
     numero_facture = models.CharField(max_length=100)
