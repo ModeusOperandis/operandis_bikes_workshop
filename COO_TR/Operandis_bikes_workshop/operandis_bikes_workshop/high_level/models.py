@@ -8,6 +8,8 @@ class Pays(models.Model):
     salaire_minimum = models.FloatField()
     def __str__(self):
             return self.nom
+    def json(self):
+          return {"nom":self.nom, "tva":self.tva, "tarif_electrique":self.tarif_electrique, "salaire_minimum":self.salaire_minimum}
     
 
 class Ville(models.Model):
