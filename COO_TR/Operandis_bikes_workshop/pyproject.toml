@@ -15,4 +15,4 @@ dev = [
     "prek>=0.5.3",
 ]
 [tool.ruff]
-extends-exclude = ["migrations"]
+extend-exclude = ["migrations"]
